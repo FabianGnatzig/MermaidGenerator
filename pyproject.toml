@@ -54,6 +54,7 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = [
+    "ANN",
     "E", # pycodestyle (error)
     "D",
     "F", # pyflakes

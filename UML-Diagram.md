@@ -2,21 +2,24 @@
 This is a test class.
 ```mermaid
 classDiagram
-    class TestClass
-    TestClass : -_private_var
-    TestClass : +public_var
-    TestClass : -_private_var
-    TestClass : +public_var
-    TestClass : -__init__()
-    TestClass : -_privatemethod()
-    TestClass : +publicmethod()
+    class TestClass {
+- _private_var
++ public_var
+- _private_var
++ public_var
+- __init__()
+- _privatemethod()
++ publicmethod()
+}
 ```
 
 # TestDataClass
 No documentation provided.
 ```mermaid
 classDiagram
-    class TestDataClass
-    TestDataClass : -_value
-    TestDataClass : +value
+    class TestDataClass {
+<<dataclass>>
+- _value
++ value
+}
 ```
