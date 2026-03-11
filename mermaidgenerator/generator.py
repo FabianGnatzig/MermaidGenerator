@@ -1,6 +1,7 @@
 """Generator class for mermaid UML-Diagramm generation."""
 
 import ast
+from pathlib import Path
 
 DOCSTRING_FILLER = "No documentation provided."
 
@@ -12,6 +13,7 @@ class ClassDiagramGenerator(ast.NodeVisitor):
         """Initialisation of the generator."""
         self._classes = []
         self._markdown_lines = []
+        self._seen_classes = set()
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         """Analysed the class definition.
@@ -21,6 +23,11 @@ class ClassDiagramGenerator(ast.NodeVisitor):
         Args:
             node (ast.ClassDef): ClassDef object of the class to analyse.
         """
+        if node.name in self._seen_classes:
+            return
+
+        self._seen_classes.add(node.name)
+
         class_info = {
             "name": node.name,
             "decorator": "",
@@ -58,7 +65,6 @@ class ClassDiagramGenerator(ast.NodeVisitor):
                     class_info["attributes"].append(target.id)
 
         self._classes.append(class_info)
-        self.generic_visit(node)
 
     def generate_markdown_output(self) -> None:
         """Generates the markdown / mermaid out of the analysed classes."""
@@ -76,8 +82,6 @@ class ClassDiagramGenerator(ast.NodeVisitor):
             self._markdown_lines.append("}")
             self._markdown_lines.append("```")
             self._markdown_lines.append("")
-
-        self._write_to_json()
 
     def _create_mermaid_header(self, name: str, docstring: str, decorator: str) -> None:
         """Creates a header for the mermaid diagramm.
@@ -125,9 +129,13 @@ class ClassDiagramGenerator(ast.NodeVisitor):
 
         self._markdown_lines.append(f"+ {item_name}")
 
-    def _write_to_json(self) -> None:
-        """Writes the created markdown lines to a .md file."""
-        with open("UML-Diagram.md", "w", encoding="utf-8") as file:
+    def write_to_json(self, save_path: Path) -> None:
+        """Writes the created markdown lines to a .md file.
+
+        Args:
+            save_path (Path): Path to save the markdown file.
+        """
+        with open(save_path, "w", encoding="utf-8") as file:
             file.write("\n".join(self._markdown_lines))
 
 
