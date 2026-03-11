@@ -1,13 +1,19 @@
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
-    hooks:
-    -   id: check-yaml
-    -   id: end-of-file-fixer
-    -   id: trailing-whitespace
-
-- repo: https://github.com/astral-sh/ruff-pre-commit
+- hooks:
+  - id: check-yaml
+  - id: end-of-file-fixer
+  - id: trailing-whitespace
+  repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.3.0
+- hooks:
+  - id: ruff-check
+  - id: ruff-format
+  repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.15.5
-  hooks:
-    - id: ruff-check
-    - id: ruff-format
+- hooks:
+  - id: commitizen
+  - id: commitizen-branch
+    stages:
+    - pre-push
+  repo: https://github.com/commitizen-tools/commitizen
+  rev: v4.13.9
