@@ -34,6 +34,9 @@ class ClassDiagramGenerator(ast.NodeVisitor):
         for item in node.body:
             if isinstance(item, ast.FunctionDef):
                 class_info["methods"].append(item.name)
+                if item.name != "__init__":
+                    continue
+
                 for function_item in item.body:
                     if not isinstance(function_item, ast.Assign):
                         continue
@@ -41,6 +44,9 @@ class ClassDiagramGenerator(ast.NodeVisitor):
                     for target in function_item.targets:
                         if not isinstance(target, ast.Attribute):
                             continue
+
+                    if target.attr in class_info["attributes"]:
+                        continue
 
                     class_info["attributes"].append(target.attr)
 
@@ -113,6 +119,7 @@ class ClassDiagramGenerator(ast.NodeVisitor):
             item_name += "()"
 
         if item_name.startswith("_"):
+            item_name = item_name.replace("_", "\\_")
             self._markdown_lines.append(f"- {item_name}")
             return
 

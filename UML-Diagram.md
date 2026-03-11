@@ -3,23 +3,21 @@ This is a test class.
 ```mermaid
 classDiagram
     class TestClass {
-- _private_var
+- \_private\_var
 + public_var
-- _private_var
-+ public_var
-- __init__()
-- _privatemethod()
+- \_\_init\_\_()
+- \_privatemethod()
 + publicmethod()
 }
 ```
 
 # TestDataClass
-No documentation provided.
+This is a docstring.
 ```mermaid
 classDiagram
     class TestDataClass {
 <<dataclass>>
-- _value
+- \_value
 + value
 }
 ```
