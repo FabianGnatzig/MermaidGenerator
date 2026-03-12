@@ -83,13 +83,7 @@ class ClassDiagramGenerator(ast.NodeVisitor):
         Returns:
             list[str]: List of arguments as strings.
         """
-        args = []
-        for argument in item.args.args:
-            if argument.arg == "self":
-                continue
-
-            args.append(argument.arg)
-        return args
+        return [arg.arg for arg in item.args.args]
 
     @staticmethod
     def _get_return_types(item: ast.FunctionDef) -> str:
@@ -105,17 +99,17 @@ class ClassDiagramGenerator(ast.NodeVisitor):
             return item.returns.id
 
         if isinstance(item.returns, ast.Subscript):
-            string = f"{item.returns.value.id}["
+            return_types = f"{item.returns.value.id}["
 
-            x = item.returns.slice.elts
+            tuple_items = item.returns.slice.elts
 
-            for type in x:
-                string += type.id
-                if type != x[-1]:
-                    string += ", "
+            for type in tuple_items:
+                return_types += type.id
+                if type != tuple_items[-1]:
+                    return_types += ", "
 
-            string += "]"
-            return string
+            return_types += "]"
+            return return_types
 
         else:
             return "None"
@@ -154,7 +148,7 @@ class ClassDiagramGenerator(ast.NodeVisitor):
             self._markdown_lines.append(docstring)
 
         if parent:
-            self._markdown_lines.append(f"[Link to Parent](#{parent.lower()})")
+            self._markdown_lines.append(f"[Parent class](#{parent.lower()})")
 
         self._markdown_lines.append("```mermaid")
         self._markdown_lines.append("classDiagram")

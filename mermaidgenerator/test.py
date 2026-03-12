@@ -41,6 +41,18 @@ class AnotherClass(TestClass):
         super().__init__()
         self._name = name
 
+    @staticmethod
+    def _do_something(name: str) -> str:
+        """Does something.
+
+        Args:
+            name (str): A random name.
+
+        Returns:
+            str: A name in caps.
+        """
+        return name.capitalize()
+
 
 @dataclass
 class TestDataClass:
