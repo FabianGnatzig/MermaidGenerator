@@ -1,3 +1,9 @@
+## 0.5.1 (2026-03-12)
+
+### Fix
+
+- issues with imported parents and list typehints
+
 ## 0.5.0 (2026-03-12)
 
 ### Feat
