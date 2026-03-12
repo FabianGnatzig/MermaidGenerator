@@ -11,21 +11,47 @@ class TestClass:
         self._private_var = True
         self.public_var = False
 
-    def _privatemethod(self, value: bool) -> None:
+    def _privatemethod(self, value: bool) -> bool:
         """A private method.
 
         Args:
             value (bool): A value.
         """
         self._private_var = value
+        return True
 
-    def publicmethod(self, value: bool) -> None:
+    def publicmethod(self, value: bool) -> tuple[str, bool]:
         """A public method.
 
         Args:
             value (bool): A value.
         """
         self.public_var = value
+
+
+class AnotherClass(TestClass):
+    """Its just a class with inhertation."""
+
+    def __init__(self, name: str) -> None:
+        """Another init method.
+
+        Args:
+            name (str): A random name.
+        """
+        super().__init__()
+        self._name = name
+
+    @staticmethod
+    def _do_something(name: str) -> str:
+        """Does something.
+
+        Args:
+            name (str): A random name.
+
+        Returns:
+            str: A name in caps.
+        """
+        return name.capitalize()
 
 
 @dataclass
