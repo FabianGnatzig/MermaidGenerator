@@ -32,6 +32,8 @@ class ClassDiagramGenerator(ast.NodeVisitor):
             "name": node.name,
             "decorator": "",
             "methods": [],
+            "arguments": [],
+            "returns": [],
             "attributes": [],
             "docstring": ast.get_docstring(node),
         }
@@ -41,6 +43,9 @@ class ClassDiagramGenerator(ast.NodeVisitor):
         for item in node.body:
             if isinstance(item, ast.FunctionDef):
                 class_info["methods"].append(item.name)
+                class_info["arguments"].append(self._get_arguments(item))
+                class_info["returns"].append(self._get_return_types(item))
+
                 if item.name != "__init__":
                     continue
 
@@ -66,6 +71,53 @@ class ClassDiagramGenerator(ast.NodeVisitor):
 
         self._classes.append(class_info)
 
+    @staticmethod
+    def _get_arguments(item: ast.FunctionDef) -> list[str]:
+        """Generates a list of arguments.
+
+        Args:
+            item (ast.FunctionDef): Function definition item.
+
+        Returns:
+            list[str]: List of arguments as strings.
+        """
+        args = []
+        for argument in item.args.args:
+            if argument.arg == "self":
+                continue
+
+            args.append(argument.arg)
+        return args
+
+    @staticmethod
+    def _get_return_types(item: ast.FunctionDef) -> str:
+        """Generates a string with all return values.
+
+        Args:
+            item (ast.FunctionDef): Function definition item.
+
+        Returns:
+            str: Return type string.
+        """
+        if isinstance(item.returns, ast.Name):
+            return item.returns.id
+
+        if isinstance(item.returns, ast.Subscript):
+            string = f"{item.returns.value.id}["
+
+            x = item.returns.slice.elts
+
+            for type in x:
+                string += type.id
+                if type != x[-1]:
+                    string += ", "
+
+            string += "]"
+            return string
+
+        else:
+            return "None"
+
     def generate_markdown_output(self) -> None:
         """Generates the markdown / mermaid out of the analysed classes."""
         for cls in self._classes:
@@ -77,7 +129,8 @@ class ClassDiagramGenerator(ast.NodeVisitor):
                 self.add_class_item(attr)
 
             for method in cls["methods"]:
-                self.add_class_item(method, True)
+                index = cls["methods"].index(method)
+                self.add_class_item(method, True, cls["arguments"][index], cls["returns"][index])
 
             self._markdown_lines.append("}")
             self._markdown_lines.append("```")
@@ -110,7 +163,9 @@ class ClassDiagramGenerator(ast.NodeVisitor):
         self._markdown_lines.append("```")
         self._markdown_lines.append("")
 
-    def add_class_item(self, item_name: str, is_method: bool = False) -> None:
+    def add_class_item(
+        self, item_name: str, is_method: bool = False, argument: str = "", return_types: str = "None"
+    ) -> None:
         """Adds a class item to the mermaid diagram.
 
         Class items are methods and attributes.
@@ -118,9 +173,12 @@ class ClassDiagramGenerator(ast.NodeVisitor):
         Args:
             item_name (str): Defined name of the item.
             is_method (bool, optional): Flag if the item is a Method to add '()' to the name. Defaults to False.
+            argument (str, optional): Argument of method. Defaults to "".
+            return_types (str, optional): Return type hints. Defaults to "None".
         """
         if is_method:
-            item_name += "()"
+            args_str = ", ".join(argument) if isinstance(argument, list) else argument
+            item_name += f"({args_str}) -> {return_types}"
 
         if item_name.startswith("_"):
             item_name = item_name.replace("_", "\\_")
@@ -148,6 +206,7 @@ def main() -> None:
     generator = ClassDiagramGenerator()
     generator.visit(tree)
     generator.generate_markdown_output()
+    generator.write_to_json("class_diagrams.md")
 
 
 if __name__ == "__main__":

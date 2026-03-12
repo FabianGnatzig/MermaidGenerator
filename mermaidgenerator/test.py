@@ -11,15 +11,16 @@ class TestClass:
         self._private_var = True
         self.public_var = False
 
-    def _privatemethod(self, value: bool) -> None:
+    def _privatemethod(self, value: bool) -> bool:
         """A private method.
 
         Args:
             value (bool): A value.
         """
         self._private_var = value
+        return True
 
-    def publicmethod(self, value: bool) -> None:
+    def publicmethod(self, value: bool) -> tuple[str, bool]:
         """A public method.
 
         Args:
