@@ -1,3 +1,14 @@
+## 0.5.0 (2026-03-12)
+
+### Feat
+
+- add parent class with link
+- add typehints to diagramm
+
+### Fix
+
+- some names
+
 ## 0.4.0 (2026-03-11)
 
 ### Feat
