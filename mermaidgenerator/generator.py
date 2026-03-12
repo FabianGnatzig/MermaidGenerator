@@ -28,6 +28,16 @@ class ClassDiagramGenerator(ast.NodeVisitor):
 
         self._seen_classes.add(node.name)
 
+        try:
+            if isinstance(node.bases[0], ast.Attribute):
+                parent = f"{node.bases[0].value.id}.{node.bases[0].attr}"
+            elif isinstance(node.bases[0], ast.Name):
+                parent = node.bases[0].id
+            else:
+                parent = None
+        except IndexError:
+            parent = None
+
         class_info = {
             "name": node.name,
             "decorator": "",
@@ -36,7 +46,7 @@ class ClassDiagramGenerator(ast.NodeVisitor):
             "returns": [],
             "attributes": [],
             "docstring": ast.get_docstring(node),
-            "parent": None if not node.bases else f"{node.bases[0].id}",
+            "parent": parent,
         }
 
         if node.decorator_list:
@@ -101,7 +111,10 @@ class ClassDiagramGenerator(ast.NodeVisitor):
         if isinstance(item.returns, ast.Subscript):
             return_types = f"{item.returns.value.id}["
 
-            tuple_items = item.returns.slice.elts
+            try:
+                tuple_items = item.returns.slice.elts
+            except AttributeError:
+                tuple_items = [item.returns.slice]
 
             for type in tuple_items:
                 return_types += type.id

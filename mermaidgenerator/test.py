@@ -42,7 +42,7 @@ class AnotherClass(TestClass):
         self._name = name
 
     @staticmethod
-    def _do_something(name: str) -> str:
+    def _do_something(name: str) -> list[str]:
         """Does something.
 
         Args:
@@ -51,7 +51,7 @@ class AnotherClass(TestClass):
         Returns:
             str: A name in caps.
         """
-        return name.capitalize()
+        return [name.capitalize()]
 
 
 @dataclass
