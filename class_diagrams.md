@@ -1,21 +1,3 @@
-# ClassDiagramGenerator
-Generator class for UML-Diagramm generation.
-```mermaid
-classDiagram
-    class ClassDiagramGenerator {
-- \_classes
-- \_markdown\_lines
-- \_seen\_classes
-- \_\_init\_\_()
-+ visit_ClassDef()
-+ generate_markdown_output()
-- \_create\_mermaid\_header()
-- \_create\_mermaid\_footer()
-+ add_class_item()
-+ write_to_json()
-}
-```
-
 # TestClass
 This is a test class.
 ```mermaid
@@ -23,9 +5,22 @@ classDiagram
     class TestClass {
 - \_private\_var
 + public_var
-- \_\_init\_\_()
-- \_privatemethod()
-+ publicmethod()
+- \_\_init\_\_(self) -> None
+- \_privatemethod(self, value) -> bool
++ publicmethod(self, value) -> tuple[str, bool]
+}
+```
+
+# AnotherClass
+Its just a class with inhertation.
+[Parent class](#testclass)
+```mermaid
+classDiagram
+TestClass <|-- AnotherClass
+    class AnotherClass {
+- \_name
+- \_\_init\_\_(self, name) -> None
+- \_do\_something(name) -> list[str]
 }
 ```
 
