@@ -29,6 +29,19 @@ class TestClass:
         self.public_var = value
 
 
+class AnotherClass(TestClass):
+    """Its just a class with inhertation."""
+
+    def __init__(self, name: str) -> None:
+        """Another init method.
+
+        Args:
+            name (str): A random name.
+        """
+        super().__init__()
+        self._name = name
+
+
 @dataclass
 class TestDataClass:
     """This is a docstring."""

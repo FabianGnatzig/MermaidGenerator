@@ -36,7 +36,9 @@ class ClassDiagramGenerator(ast.NodeVisitor):
             "returns": [],
             "attributes": [],
             "docstring": ast.get_docstring(node),
+            "parent": None if not node.bases else f"{node.bases[0].id}",
         }
+
         if node.decorator_list:
             class_info["decorator"] = node.decorator_list[0].id
 
@@ -123,7 +125,7 @@ class ClassDiagramGenerator(ast.NodeVisitor):
         for cls in self._classes:
             docstring = cls["docstring"] if cls["docstring"] else DOCSTRING_FILLER
 
-            self._create_mermaid_header(cls["name"], docstring, cls["decorator"])
+            self._create_mermaid_header(cls["name"], docstring, cls["decorator"], cls["parent"])
 
             for attr in cls["attributes"]:
                 self.add_class_item(attr)
@@ -136,7 +138,7 @@ class ClassDiagramGenerator(ast.NodeVisitor):
             self._markdown_lines.append("```")
             self._markdown_lines.append("")
 
-    def _create_mermaid_header(self, name: str, docstring: str, decorator: str) -> None:
+    def _create_mermaid_header(self, name: str, docstring: str, decorator: str, parent: str = "") -> None:
         """Creates a header for the mermaid diagramm.
 
         Creates a heading, adds the docstring and creates the mermaid start.
@@ -145,13 +147,21 @@ class ClassDiagramGenerator(ast.NodeVisitor):
             name (str): Name of the class.
             docstring (str): Docstring of the class.
             decorator (str): Decorator of the class.
+            parent (str): Name of the parent class. Default is "".
         """
         self._markdown_lines.append(f"# {name}")
         if docstring:
             self._markdown_lines.append(docstring)
 
+        if parent:
+            self._markdown_lines.append(f"[Link to Parent](#{parent.lower()})")
+
         self._markdown_lines.append("```mermaid")
         self._markdown_lines.append("classDiagram")
+
+        if parent:
+            self._markdown_lines.append(f"{parent} <|-- {name}")
+
         self._markdown_lines.append(f"    class {name}" + " {")
 
         if decorator:
