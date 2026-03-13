@@ -1,3 +1,9 @@
+## 0.5.2 (2026-03-13)
+
+### Fix
+
+- import error when called as a module
+
 ## 0.5.1 (2026-03-12)
 
 ### Fix
