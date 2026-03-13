@@ -4,7 +4,7 @@ import ast
 from argparse import ArgumentParser
 from pathlib import Path
 
-from generator import ClassDiagramGenerator
+from .generator import ClassDiagramGenerator
 
 
 def main() -> None:
