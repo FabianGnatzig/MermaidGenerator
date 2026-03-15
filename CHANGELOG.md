@@ -1,3 +1,9 @@
+## 0.5.3 (2026-03-15)
+
+### Fix
+
+- add github app for authentification
+
 ## 0.5.2 (2026-03-13)
 
 ### Fix
