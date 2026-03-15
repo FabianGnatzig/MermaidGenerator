@@ -6,20 +6,32 @@ on:
       - main
 
 jobs:
-  bump_version:
+  bump_version_app:
     if: "!startsWith(github.event.head_commit.message, 'bump:')"
     runs-on: ubuntu-latest
     name: "Bump version and create changelog with commitizen"
     steps:
+
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.MERMAID_APP_ID }}
+          private-key: ${{ secrets.MERMAID_APP_TOKEN }}
+
       - name: Check out
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          token: "${{ secrets.GITHUB_TOKEN }}"
+          token: "${{ steps.app-token.outputs.token }}"
+
+      - run: |
+            git config user.name github-actions
+            git config user.email github-actions@github.com
+
       - id: cz
         name: Create bump and changelog
         uses: commitizen-tools/commitizen-action@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ steps.app-token.outputs.token }}
       - name: Print Version
         run: echo "Bumped to version ${{ steps.cz.outputs.version }}"
