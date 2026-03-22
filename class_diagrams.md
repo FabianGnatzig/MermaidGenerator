@@ -27,7 +27,6 @@ This is a test class.
 ```mermaid
 classDiagram
     class TestClass {
-- bool \_private\_var
 + bool public\_var
 + bool private\_var
 - \_\_init\_\_() None

@@ -138,6 +138,7 @@ class ClassDiagramGenerator(ast.NodeVisitor):
 
         if "property" in dec_names:
             self._add_attribute(class_info, item.name, _annotation_to_str(item.returns))
+            class_info["attributes"] = [a for a in class_info["attributes"] if a["name"] != f"_{item.name}"]
             return
 
         args = []
