@@ -1,3 +1,14 @@
+## 0.6.0 (2026-03-22)
+
+### Feat
+
+- add comprehensive Python language support to diagram generator
+
+### Fix
+
+- remove backing field when @property with same name exists
+- resolve multiple code quality issues in generator
+
 ## 0.5.3 (2026-03-15)
 
 ### Fix
