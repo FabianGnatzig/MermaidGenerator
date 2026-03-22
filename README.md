@@ -46,11 +46,16 @@ python -m mermaidgenerator --src-folder <path> [--doc-path <output>]
 |---|---|---|
 | `--src-folder` | yes | Root directory of your Python project to scan |
 | `--doc-path` | no | Output path for the `.md` file (default: `<src-folder>/../class_diagrams.md`) |
+| `--exclude` | no | Glob pattern of files to skip, relative to `--src-folder` (can be repeated) |
 
-### Example
+### Examples
 
 ```bash
+# Basic usage
 python -m mermaidgenerator --src-folder src --doc-path docs/class_diagrams.md
+
+# Exclude test files and a specific module
+python -m mermaidgenerator --src-folder src --exclude "**/test_*.py" --exclude "migrations/*.py"
 ```
 
 ---
