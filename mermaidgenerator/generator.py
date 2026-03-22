@@ -50,7 +50,11 @@ class ClassDiagramGenerator(ast.NodeVisitor):
         }
 
         if node.decorator_list:
-            class_info["decorator"] = node.decorator_list[0].id
+            decorator = node.decorator_list[0]
+            if isinstance(decorator, ast.Name):
+                class_info["decorator"] = decorator.id
+            elif isinstance(decorator, ast.Attribute):
+                class_info["decorator"] = decorator.attr
 
         for item in node.body:
             if isinstance(item, ast.FunctionDef):
@@ -69,10 +73,10 @@ class ClassDiagramGenerator(ast.NodeVisitor):
                         if not isinstance(target, ast.Attribute):
                             continue
 
-                    if target.attr in class_info["attributes"]:
-                        continue
+                        if target.attr in class_info["attributes"]:
+                            continue
 
-                    class_info["attributes"].append(target.attr)
+                        class_info["attributes"].append(target.attr)
 
             elif isinstance(item, ast.Assign):
                 for target in item.targets:
@@ -109,16 +113,18 @@ class ClassDiagramGenerator(ast.NodeVisitor):
             return item.returns.id
 
         if isinstance(item.returns, ast.Subscript):
-            return_types = f"{item.returns.value.id}["
+            value = item.returns.value
+            outer = f"{value.value.id}.{value.attr}" if isinstance(value, ast.Attribute) else value.id
+            return_types = f"{outer}["
 
             try:
                 tuple_items = item.returns.slice.elts
             except AttributeError:
                 tuple_items = [item.returns.slice]
 
-            for type in tuple_items:
-                return_types += type.id
-                if type != tuple_items[-1]:
+            for type_node in tuple_items:
+                return_types += type_node.id if isinstance(type_node, ast.Name) else "..."
+                if type_node != tuple_items[-1]:
                     return_types += ", "
 
             return_types += "]"
@@ -141,9 +147,7 @@ class ClassDiagramGenerator(ast.NodeVisitor):
                 index = cls["methods"].index(method)
                 self.add_class_item(method, True, cls["arguments"][index], cls["returns"][index])
 
-            self._markdown_lines.append("}")
-            self._markdown_lines.append("```")
-            self._markdown_lines.append("")
+            self._create_mermaid_footer()
 
     def _create_mermaid_header(self, name: str, docstring: str, decorator: str, parent: str = "") -> None:
         """Creates a header for the mermaid diagramm.
@@ -204,7 +208,7 @@ class ClassDiagramGenerator(ast.NodeVisitor):
 
         self._markdown_lines.append(f"+ {item_name}")
 
-    def write_to_json(self, save_path: Path) -> None:
+    def write_to_markdown(self, save_path: Path) -> None:
         """Writes the created markdown lines to a .md file.
 
         Args:
@@ -223,7 +227,7 @@ def main() -> None:
     generator = ClassDiagramGenerator()
     generator.visit(tree)
     generator.generate_markdown_output()
-    generator.write_to_json("class_diagrams.md")
+    generator.write_to_markdown("class_diagrams.md")
 
 
 if __name__ == "__main__":
