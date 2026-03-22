@@ -1,3 +1,9 @@
+## 1.0.0 (2026-03-22)
+
+### Feat
+
+- add --exclude flag to skip files by glob pattern
+
 ## 0.6.0 (2026-03-22)
 
 ### Feat
