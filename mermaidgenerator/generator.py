@@ -4,6 +4,38 @@ import ast
 from pathlib import Path
 
 DOCSTRING_FILLER = "No documentation provided."
+_SKIP_ARGS = {"self", "cls"}
+_SKIP_BASES = {"ABC", "object"}
+_PROPERTY_VARIANTS = {"setter", "deleter", "getter"}
+
+
+def _annotation_to_str(node: ast.expr | None) -> str:
+    """Converts an AST annotation node to a readable type string.
+
+    Args:
+        node (ast.expr | None): The annotation AST node.
+
+    Returns:
+        str: The type as a string, or empty string if unresolvable.
+    """
+    if node is None:
+        return ""
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        return f"{node.value.id}.{node.attr}"
+    if isinstance(node, ast.Subscript):
+        outer = _annotation_to_str(node.value)
+        try:
+            inner = ", ".join(_annotation_to_str(e) for e in node.slice.elts)
+        except AttributeError:
+            inner = _annotation_to_str(node.slice)
+        return f"{outer}[{inner}]"
+    if isinstance(node, ast.Constant):
+        return str(node.value)
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
+        return f"{_annotation_to_str(node.left)} | {_annotation_to_str(node.right)}"
+    return ""
 
 
 class ClassDiagramGenerator(ast.NodeVisitor):
@@ -16,7 +48,7 @@ class ClassDiagramGenerator(ast.NodeVisitor):
         self._seen_classes = set()
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
-        """Analysed the class definition.
+        """Analyses the class definition.
 
         Gets called for each class that is defined in a sourcecode.
 
@@ -28,151 +60,174 @@ class ClassDiagramGenerator(ast.NodeVisitor):
 
         self._seen_classes.add(node.name)
 
-        try:
-            if isinstance(node.bases[0], ast.Attribute):
-                parent = f"{node.bases[0].value.id}.{node.bases[0].attr}"
-            elif isinstance(node.bases[0], ast.Name):
-                parent = node.bases[0].id
-            else:
-                parent = None
-        except IndexError:
-            parent = None
+        parents = []
+        for base in node.bases:
+            if isinstance(base, ast.Attribute):
+                qualified = f"{base.value.id}.{base.attr}"
+                if base.attr not in _SKIP_BASES:
+                    parents.append(qualified)
+            elif isinstance(base, ast.Name) and base.id not in _SKIP_BASES:
+                parents.append(base.id)
 
         class_info = {
             "name": node.name,
-            "decorator": "",
+            "stereotype": self._get_stereotype(node),
             "methods": [],
-            "arguments": [],
-            "returns": [],
             "attributes": [],
             "docstring": ast.get_docstring(node),
-            "parent": parent,
+            "parents": parents,
         }
-
-        if node.decorator_list:
-            class_info["decorator"] = node.decorator_list[0].id
 
         for item in node.body:
             if isinstance(item, ast.FunctionDef):
-                class_info["methods"].append(item.name)
-                class_info["arguments"].append(self._get_arguments(item))
-                class_info["returns"].append(self._get_return_types(item))
-
-                if item.name != "__init__":
-                    continue
-
-                for function_item in item.body:
-                    if not isinstance(function_item, ast.Assign):
-                        continue
-
-                    for target in function_item.targets:
-                        if not isinstance(target, ast.Attribute):
-                            continue
-
-                    if target.attr in class_info["attributes"]:
-                        continue
-
-                    class_info["attributes"].append(target.attr)
-
+                self._process_method(item, class_info)
             elif isinstance(item, ast.Assign):
                 for target in item.targets:
-                    if not isinstance(target, ast.Name):
-                        continue
-
-                    class_info["attributes"].append(target.id)
+                    if isinstance(target, ast.Name):
+                        self._add_attribute(class_info, target.id, "")
+            elif isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
+                self._add_attribute(class_info, item.target.id, _annotation_to_str(item.annotation))
 
         self._classes.append(class_info)
 
     @staticmethod
-    def _get_arguments(item: ast.FunctionDef) -> list[str]:
-        """Generates a list of arguments.
+    def _get_stereotype(node: ast.ClassDef) -> str:
+        """Determines the Mermaid stereotype for a class node.
+
+        Checks bases for ABC (abstract) and decorators (e.g. dataclass).
 
         Args:
-            item (ast.FunctionDef): Function definition item.
+            node (ast.ClassDef): ClassDef object of the class to analyse.
 
         Returns:
-            list[str]: List of arguments as strings.
+            str: Stereotype string (e.g. "dataclass", "abstract"), or empty string.
         """
-        return [arg.arg for arg in item.args.args]
+        for base in node.bases:
+            if (isinstance(base, ast.Name) and base.id == "ABC") or (
+                isinstance(base, ast.Attribute) and base.attr == "ABC"
+            ):
+                return "abstract"
 
-    @staticmethod
-    def _get_return_types(item: ast.FunctionDef) -> str:
-        """Generates a string with all return values.
+        for dec in node.decorator_list:
+            if isinstance(dec, ast.Name):
+                return dec.id
+            if isinstance(dec, ast.Attribute):
+                return dec.attr
+
+        return ""
+
+    def _process_method(self, item: ast.FunctionDef, class_info: dict) -> None:
+        """Processes a method definition and updates class_info.
+
+        Handles properties, static/class methods, abstract methods, and
+        instance attribute assignments inside __init__.
 
         Args:
-            item (ast.FunctionDef): Function definition item.
-
-        Returns:
-            str: Return type string.
+            item (ast.FunctionDef): The method AST node.
+            class_info (dict): The class info dict to update.
         """
-        if isinstance(item.returns, ast.Name):
-            return item.returns.id
+        dec_names = set()
+        for dec in item.decorator_list:
+            if isinstance(dec, ast.Name):
+                dec_names.add(dec.id)
+            elif isinstance(dec, ast.Attribute):
+                dec_names.add(dec.attr)
 
-        if isinstance(item.returns, ast.Subscript):
-            return_types = f"{item.returns.value.id}["
+        if dec_names & _PROPERTY_VARIANTS:
+            return
 
-            try:
-                tuple_items = item.returns.slice.elts
-            except AttributeError:
-                tuple_items = [item.returns.slice]
+        if "property" in dec_names:
+            self._add_attribute(class_info, item.name, _annotation_to_str(item.returns))
+            class_info["attributes"] = [a for a in class_info["attributes"] if a["name"] != f"_{item.name}"]
+            return
 
-            for type in tuple_items:
-                return_types += type.id
-                if type != tuple_items[-1]:
-                    return_types += ", "
+        args = []
+        for arg in item.args.args:
+            if arg.arg in _SKIP_ARGS:
+                continue
+            type_str = _annotation_to_str(arg.annotation)
+            args.append(f"{arg.arg}: {type_str}" if type_str else arg.arg)
 
-            return_types += "]"
-            return return_types
+        class_info["methods"].append(
+            {
+                "name": item.name,
+                "args": args,
+                "return_type": _annotation_to_str(item.returns) or "None",
+                "is_static": "staticmethod" in dec_names or "classmethod" in dec_names,
+                "is_abstract": "abstractmethod" in dec_names,
+            }
+        )
 
-        else:
-            return "None"
+        if item.name == "__init__":
+            for func_item in item.body:
+                if isinstance(func_item, ast.Assign):
+                    for target in func_item.targets:
+                        if (
+                            isinstance(target, ast.Attribute)
+                            and isinstance(target.value, ast.Name)
+                            and target.value.id == "self"
+                        ):
+                            self._add_attribute(class_info, target.attr, "")
+                elif isinstance(func_item, ast.AnnAssign):
+                    target = func_item.target
+                    if (
+                        isinstance(target, ast.Attribute)
+                        and isinstance(target.value, ast.Name)
+                        and target.value.id == "self"
+                    ):
+                        self._add_attribute(class_info, target.attr, _annotation_to_str(func_item.annotation))
+
+    def _add_attribute(self, class_info: dict, name: str, type_str: str) -> None:
+        """Adds an attribute to class_info if not already present.
+
+        Args:
+            class_info (dict): The class info dict to update.
+            name (str): Attribute name.
+            type_str (str): Attribute type as a string.
+        """
+        if not any(a["name"] == name for a in class_info["attributes"]):
+            class_info["attributes"].append({"name": name, "type": type_str})
 
     def generate_markdown_output(self) -> None:
         """Generates the markdown / mermaid out of the analysed classes."""
         for cls in self._classes:
             docstring = cls["docstring"] if cls["docstring"] else DOCSTRING_FILLER
-
-            self._create_mermaid_header(cls["name"], docstring, cls["decorator"], cls["parent"])
+            self._create_mermaid_header(cls["name"], docstring, cls["stereotype"], cls["parents"])
 
             for attr in cls["attributes"]:
-                self.add_class_item(attr)
+                self._add_attribute_line(attr["name"], attr["type"])
 
             for method in cls["methods"]:
-                index = cls["methods"].index(method)
-                self.add_class_item(method, True, cls["arguments"][index], cls["returns"][index])
+                self._add_method_line(method)
 
-            self._markdown_lines.append("}")
-            self._markdown_lines.append("```")
-            self._markdown_lines.append("")
+            self._create_mermaid_footer()
 
-    def _create_mermaid_header(self, name: str, docstring: str, decorator: str, parent: str = "") -> None:
-        """Creates a header for the mermaid diagramm.
-
-        Creates a heading, adds the docstring and creates the mermaid start.
+    def _create_mermaid_header(self, name: str, docstring: str, stereotype: str, parents: list[str]) -> None:
+        """Creates a header for the mermaid diagram.
 
         Args:
             name (str): Name of the class.
             docstring (str): Docstring of the class.
-            decorator (str): Decorator of the class.
-            parent (str): Name of the parent class. Default is "".
+            stereotype (str): Mermaid stereotype (e.g. "dataclass", "abstract").
+            parents (list[str]): Names of all parent classes.
         """
         self._markdown_lines.append(f"# {name}")
         if docstring:
             self._markdown_lines.append(docstring)
 
-        if parent:
+        for parent in parents:
             self._markdown_lines.append(f"[Parent class](#{parent.lower()})")
 
         self._markdown_lines.append("```mermaid")
         self._markdown_lines.append("classDiagram")
 
-        if parent:
+        for parent in parents:
             self._markdown_lines.append(f"{parent} <|-- {name}")
 
         self._markdown_lines.append(f"    class {name}" + " {")
 
-        if decorator:
-            self._markdown_lines.append(f"<<{decorator}>>")
+        if stereotype:
+            self._markdown_lines.append(f"<<{stereotype}>>")
 
     def _create_mermaid_footer(self) -> None:
         """Adds a footer for the mermaid diagram."""
@@ -180,31 +235,39 @@ class ClassDiagramGenerator(ast.NodeVisitor):
         self._markdown_lines.append("```")
         self._markdown_lines.append("")
 
-    def add_class_item(
-        self, item_name: str, is_method: bool = False, argument: str = "", return_types: str = "None"
-    ) -> None:
-        """Adds a class item to the mermaid diagram.
-
-        Class items are methods and attributes.
+    def _add_attribute_line(self, name: str, type_str: str) -> None:
+        """Adds an attribute line to the mermaid diagram.
 
         Args:
-            item_name (str): Defined name of the item.
-            is_method (bool, optional): Flag if the item is a Method to add '()' to the name. Defaults to False.
-            argument (str, optional): Argument of method. Defaults to "".
-            return_types (str, optional): Return type hints. Defaults to "None".
+            name (str): Attribute name.
+            type_str (str): Attribute type string, or empty if unknown.
         """
-        if is_method:
-            args_str = ", ".join(argument) if isinstance(argument, list) else argument
-            item_name += f"({args_str}) -> {return_types}"
+        visibility = "-" if name.startswith("_") else "+"
+        escaped = name.replace("_", "\\_")
+        type_part = f"{type_str} " if type_str else ""
+        self._markdown_lines.append(f"{visibility} {type_part}{escaped}")
 
-        if item_name.startswith("_"):
-            item_name = item_name.replace("_", "\\_")
-            self._markdown_lines.append(f"- {item_name}")
-            return
+    def _add_method_line(self, method: dict) -> None:
+        """Adds a method line to the mermaid diagram.
 
-        self._markdown_lines.append(f"+ {item_name}")
+        Appends $ for static/classmethod and * for abstract methods.
 
-    def write_to_json(self, save_path: Path) -> None:
+        Args:
+            method (dict): Method info with name, args, return_type, is_static, is_abstract.
+        """
+        name = method["name"]
+        args_str = ", ".join(method["args"])
+        return_type = method["return_type"]
+        escaped = name.replace("_", "\\_")
+        visibility = "-" if name.startswith("_") else "+"
+
+        suffix = "$" if method["is_static"] else ("*" if method["is_abstract"] else "")
+        line = f"{visibility} {escaped}({args_str}) {return_type}"
+        if suffix:
+            line += f" {suffix}"
+        self._markdown_lines.append(line)
+
+    def write_to_markdown(self, save_path: Path) -> None:
         """Writes the created markdown lines to a .md file.
 
         Args:
@@ -216,14 +279,14 @@ class ClassDiagramGenerator(ast.NodeVisitor):
 
 def main() -> None:
     """Main function for testing."""
-    with open("mermaidgenerator/test.py") as f:
+    with open("mermaidgenerator/test.py", encoding="utf-8") as f:
         source_code = f.read()
 
     tree = ast.parse(source_code)
     generator = ClassDiagramGenerator()
     generator.visit(tree)
     generator.generate_markdown_output()
-    generator.write_to_json("class_diagrams.md")
+    generator.write_to_markdown("class_diagrams.md")
 
 
 if __name__ == "__main__":

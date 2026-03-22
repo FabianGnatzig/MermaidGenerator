@@ -22,14 +22,14 @@ def main() -> None:
     generator = ClassDiagramGenerator()
 
     for python_file in all_python_files:
-        with open(python_file) as f:
+        with open(python_file, encoding="utf-8") as f:
             source_code = f.read()
 
         tree = ast.parse(source_code)
         generator.visit(tree)
 
     generator.generate_markdown_output()
-    generator.write_to_json(doc_path)
+    generator.write_to_markdown(doc_path)
 
 
 if __name__ == "__main__":
