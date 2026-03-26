@@ -278,19 +278,3 @@ class ClassDiagramGenerator(ast.NodeVisitor):
         """
         with open(save_path, "w", encoding="utf-8") as file:
             file.write("\n".join(self._markdown_lines))
-
-
-def main() -> None:
-    """Main function for testing."""
-    with open("mermaidgenerator/test.py", encoding="utf-8") as f:
-        source_code = f.read()
-
-    tree = ast.parse(source_code)
-    generator = ClassDiagramGenerator()
-    generator.visit(tree)
-    generator.generate_markdown_output()
-    generator.write_to_markdown("class_diagrams.md")
-
-
-if __name__ == "__main__":
-    main()
