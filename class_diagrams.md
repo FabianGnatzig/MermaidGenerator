@@ -1,6 +1,6 @@
 # ClassDiagramGenerator
 Generator class for UML-Diagramm generation.
-[Parent class](#ast.nodevisitor)
+Parent class: ast.NodeVisitor
 ```mermaid
 classDiagram
 ast.NodeVisitor <|-- ClassDiagramGenerator

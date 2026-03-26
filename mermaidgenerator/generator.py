@@ -216,7 +216,10 @@ class ClassDiagramGenerator(ast.NodeVisitor):
             self._markdown_lines.append(docstring)
 
         for parent in parents:
-            self._markdown_lines.append(f"[Parent class](#{parent.lower()})")
+            if parent in self._seen_classes:
+                self._markdown_lines.append(f"[Parent class](#{parent.lower()})")
+            else:
+                self._markdown_lines.append(f"Parent class: {parent}")
 
         self._markdown_lines.append("```mermaid")
         self._markdown_lines.append("classDiagram")
