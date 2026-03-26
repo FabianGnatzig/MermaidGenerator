@@ -1,3 +1,17 @@
+## 1.1.0 (2026-03-26)
+
+### Feat
+
+- add pytest test suite and CI workflow for PRs
+
+### Fix
+
+- render external parent classes as plain text instead of broken anchors
+
+### Refactor
+
+- move example files to examples/ and remove dev scaffolding
+
 ## 1.0.0 (2026-03-22)
 
 ### Feat
