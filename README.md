@@ -4,7 +4,7 @@ Automatically generate [Mermaid](https://mermaid.js.org/) class diagrams from Py
 
 [![PyPI version](https://img.shields.io/pypi/v/mermaidgenerator)](https://pypi.org/project/mermaidgenerator/)
 [![Python](https://img.shields.io/pypi/pyversions/mermaidgenerator)](https://pypi.org/project/mermaidgenerator/)
-[![License](https://img.shields.io/pypi/l/mermaidgenerator)](LICENSE)
+[![License](https://img.shields.io/pypi/l/mermaidgenerator)](https://github.com/FabianGnatzig/MermaidGenerator/blob/main/LICENSE)
 
 MermaidGenerator parses your Python files using the AST and produces a Markdown file with embedded Mermaid class diagrams — no runtime execution required. [See an example output.](/examples/class_diagrams.md)
 
