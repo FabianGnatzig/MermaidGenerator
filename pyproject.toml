@@ -1,6 +1,6 @@
 [project]
 name = "mermaidgenerator"
-version = "1.2.0a1"
+version = "1.2.0a2"
 description = ""
 authors = [
     {name = "Fabian Gnatzig",email = "fabiangnatzig@gmx.de"}
