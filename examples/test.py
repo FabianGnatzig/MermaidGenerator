@@ -113,3 +113,39 @@ class TestDataClass:
     _value: bool = False
     value: bool = True
     label: str = "default"
+
+
+class Engine:
+    """Represents a car engine."""
+
+    def __init__(self, horsepower: int) -> None:
+        """Init method.
+
+        Args:
+            horsepower (int): Engine power in HP.
+        """
+        self.horsepower: int = horsepower
+
+    def start(self) -> None:
+        """Start the engine."""
+
+    def stop(self) -> None:
+        """Stop the engine."""
+
+
+class Car:
+    """A car that uses an Engine — demonstrates association traceability."""
+
+    def __init__(self, model: str, engine: Engine) -> None:
+        """Init method.
+
+        Args:
+            model (str): Car model name.
+            engine (Engine): The engine instance.
+        """
+        self.model: str = model
+        self.engine: Engine = engine
+
+    def drive(self) -> None:
+        """Start the engine and drive."""
+        self.engine.start()

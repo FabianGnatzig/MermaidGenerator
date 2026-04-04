@@ -52,3 +52,29 @@ classDiagram
 + str label
 }
 ```
+
+# Engine
+Represents a car engine.
+```mermaid
+classDiagram
+    class Engine {
++ int horsepower
+- \_\_init\_\_(horsepower: int) None
++ start() None
++ stop() None
+}
+```
+
+# Car
+A car that uses an Engine — demonstrates association traceability.
+[Uses](#engine)
+```mermaid
+classDiagram
+Car --> Engine : engine
+    class Car {
++ str model
++ Engine engine
+- \_\_init\_\_(model: str, engine: Engine) None
++ drive() None
+}
+```
