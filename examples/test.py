@@ -133,16 +133,36 @@ class Engine:
         """Stop the engine."""
 
 
-class Car:
-    """A car that uses an Engine — demonstrates association traceability."""
+class Vehicle:
+    """Base class for all vehicles."""
 
-    def __init__(self, model: str, engine: Engine) -> None:
+    def __init__(self, make: str, year: int) -> None:
         """Init method.
 
         Args:
+            make (str): Manufacturer name.
+            year (int): Production year.
+        """
+        self.make: str = make
+        self.year: int = year
+
+    def describe(self) -> str:
+        """Return a description of the vehicle."""
+
+
+class Car(Vehicle):
+    """A car — demonstrates inheritance from Vehicle and association with Engine."""
+
+    def __init__(self, make: str, year: int, model: str, engine: Engine) -> None:
+        """Init method.
+
+        Args:
+            make (str): Manufacturer name.
+            year (int): Production year.
             model (str): Car model name.
             engine (Engine): The engine instance.
         """
+        super().__init__(make, year)
         self.model: str = model
         self.engine: Engine = engine
 
