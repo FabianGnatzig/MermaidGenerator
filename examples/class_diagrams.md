@@ -14,7 +14,9 @@ classDiagram
 
 # AnotherClass
 Its just a class with inhertation.
-[Parent class](#testclass)
+
+
+**Inherits:** [TestClass](#testclass)
 ```mermaid
 classDiagram
 TestClass <|-- AnotherClass
@@ -65,16 +67,34 @@ classDiagram
 }
 ```
 
-# Car
-A car that uses an Engine — demonstrates association traceability.
-[Uses](#engine)
+# Vehicle
+Base class for all vehicles.
 ```mermaid
 classDiagram
+    class Vehicle {
++ str make
++ int year
+- \_\_init\_\_(make: str, year: int) None
++ describe() str
+}
+```
+
+# Car
+A car — demonstrates inheritance from Vehicle and association with Engine.
+
+
+**Inherits:** [Vehicle](#vehicle)
+
+
+**Uses:** [Engine](#engine)
+```mermaid
+classDiagram
+Vehicle <|-- Car
 Car --> Engine : engine
     class Car {
 + str model
 + Engine engine
-- \_\_init\_\_(model: str, engine: Engine) None
+- \_\_init\_\_(make: str, year: int, model: str, engine: Engine) None
 + drive() None
 }
 ```

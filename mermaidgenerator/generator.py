@@ -222,15 +222,19 @@ class ClassDiagramGenerator(ast.NodeVisitor):
             self._markdown_lines.append(docstring)
 
         for parent in parents:
+            self._markdown_lines.append("")
+            self._markdown_lines.append("")
             if parent in self._seen_classes:
-                self._markdown_lines.append(f"[Parent class](#{parent.lower()})")
+                self._markdown_lines.append(f"**Inherits:** [{parent}](#{parent.lower()})")
             else:
-                self._markdown_lines.append(f"Parent class: {parent}")
+                self._markdown_lines.append(f"**Inherits:** {parent}")
 
         seen_assoc_types = set()
         for assoc in associations:
             if assoc["type"] not in seen_assoc_types:
-                self._markdown_lines.append(f"[Uses](#{assoc['type'].lower()})")
+                self._markdown_lines.append("")
+                self._markdown_lines.append("")
+                self._markdown_lines.append(f"**Uses:** [{assoc['type']}](#{assoc['type'].lower()})")
                 seen_assoc_types.add(assoc["type"])
 
         self._markdown_lines.append("```mermaid")
