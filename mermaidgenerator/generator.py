@@ -192,7 +192,10 @@ class ClassDiagramGenerator(ast.NodeVisitor):
         """Generates the markdown / mermaid out of the analysed classes."""
         for cls in self._classes:
             docstring = cls["docstring"] if cls["docstring"] else DOCSTRING_FILLER
-            self._create_mermaid_header(cls["name"], docstring, cls["stereotype"], cls["parents"])
+            associations = [
+                attr for attr in cls["attributes"] if attr["type"] in self._seen_classes and attr["type"] != cls["name"]
+            ]
+            self._create_mermaid_header(cls["name"], docstring, cls["stereotype"], cls["parents"], associations)
 
             for attr in cls["attributes"]:
                 self._add_attribute_line(attr["name"], attr["type"])
@@ -202,7 +205,9 @@ class ClassDiagramGenerator(ast.NodeVisitor):
 
             self._create_mermaid_footer()
 
-    def _create_mermaid_header(self, name: str, docstring: str, stereotype: str, parents: list[str]) -> None:
+    def _create_mermaid_header(
+        self, name: str, docstring: str, stereotype: str, parents: list[str], associations: list[dict]
+    ) -> None:
         """Creates a header for the mermaid diagram.
 
         Args:
@@ -210,22 +215,36 @@ class ClassDiagramGenerator(ast.NodeVisitor):
             docstring (str): Docstring of the class.
             stereotype (str): Mermaid stereotype (e.g. "dataclass", "abstract").
             parents (list[str]): Names of all parent classes.
+            associations (list[dict]): Attributes whose type resolves to a known class.
         """
         self._markdown_lines.append(f"# {name}")
         if docstring:
             self._markdown_lines.append(docstring)
 
         for parent in parents:
+            self._markdown_lines.append("")
+            self._markdown_lines.append("")
             if parent in self._seen_classes:
-                self._markdown_lines.append(f"[Parent class](#{parent.lower()})")
+                self._markdown_lines.append(f"**Inherits:** [{parent}](#{parent.lower()})")
             else:
-                self._markdown_lines.append(f"Parent class: {parent}")
+                self._markdown_lines.append(f"**Inherits:** {parent}")
+
+        seen_assoc_types = set()
+        for assoc in associations:
+            if assoc["type"] not in seen_assoc_types:
+                self._markdown_lines.append("")
+                self._markdown_lines.append("")
+                self._markdown_lines.append(f"**Uses:** [{assoc['type']}](#{assoc['type'].lower()})")
+                seen_assoc_types.add(assoc["type"])
 
         self._markdown_lines.append("```mermaid")
         self._markdown_lines.append("classDiagram")
 
         for parent in parents:
             self._markdown_lines.append(f"{parent} <|-- {name}")
+
+        for assoc in associations:
+            self._markdown_lines.append(f"{name} --> {assoc['type']} : {assoc['name']}")
 
         self._markdown_lines.append(f"    class {name}" + " {")
 

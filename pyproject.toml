@@ -1,7 +1,7 @@
 [project]
 name = "mermaidgenerator"
-version = "1.1.0"
-description = ""
+version = "1.2.0a2"
+description = "Generator to create mermaid class diagrams."
 authors = [
     {name = "Fabian Gnatzig",email = "fabiangnatzig@gmx.de"}
 ]

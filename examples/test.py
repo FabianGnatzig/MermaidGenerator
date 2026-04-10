@@ -113,3 +113,59 @@ class TestDataClass:
     _value: bool = False
     value: bool = True
     label: str = "default"
+
+
+class Engine:
+    """Represents a car engine."""
+
+    def __init__(self, horsepower: int) -> None:
+        """Init method.
+
+        Args:
+            horsepower (int): Engine power in HP.
+        """
+        self.horsepower: int = horsepower
+
+    def start(self) -> None:
+        """Start the engine."""
+
+    def stop(self) -> None:
+        """Stop the engine."""
+
+
+class Vehicle:
+    """Base class for all vehicles."""
+
+    def __init__(self, make: str, year: int) -> None:
+        """Init method.
+
+        Args:
+            make (str): Manufacturer name.
+            year (int): Production year.
+        """
+        self.make: str = make
+        self.year: int = year
+
+    def describe(self) -> str:
+        """Return a description of the vehicle."""
+
+
+class Car(Vehicle):
+    """A car — demonstrates inheritance from Vehicle and association with Engine."""
+
+    def __init__(self, make: str, year: int, model: str, engine: Engine) -> None:
+        """Init method.
+
+        Args:
+            make (str): Manufacturer name.
+            year (int): Production year.
+            model (str): Car model name.
+            engine (Engine): The engine instance.
+        """
+        super().__init__(make, year)
+        self.model: str = model
+        self.engine: Engine = engine
+
+    def drive(self) -> None:
+        """Start the engine and drive."""
+        self.engine.start()
