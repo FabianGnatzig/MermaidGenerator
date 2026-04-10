@@ -1,3 +1,15 @@
+## 1.2.0 (2026-04-10)
+
+## 1.2.0a2 (2026-04-04)
+
+### Feat
+
+- add association traceability for typed class attributes
+
+### Fix
+
+- improve readability of Inherits and Uses links in markdown output
+
 ## 1.1.0 (2026-03-26)
 
 ### Feat
