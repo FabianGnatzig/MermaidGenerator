@@ -149,13 +149,13 @@ class TestInheritance:
         """A parent defined in the same scan gets a markdown anchor link."""
         source = "class Base:\n    pass\nclass Child(Base):\n    pass"
         out = _output(source)
-        assert "[Parent class](#base)" in out
+        assert "Inherits:** [Base](#base)" in out
 
     def test_external_parent_gets_plain_text(self) -> None:
         """A parent not found in the scan gets plain text."""
         source = "class Child(SomeExternalBase):\n    pass"
         out = _output(source)
-        assert "Parent class: SomeExternalBase" in out
+        assert "Inherits:** SomeExternalBase" in out
         assert "[Parent class]" not in out
 
     def test_abc_base_is_skipped(self) -> None:
