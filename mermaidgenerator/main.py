@@ -37,9 +37,9 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-    src_folder = Path(args.src_folder)
+    src_folder = Path(args.src_folder).resolve()
 
-    doc_path = Path(args.doc_path) if args.doc_path else src_folder.parent / "class_diagrams.md"
+    doc_path = Path(args.doc_path).resolve() if args.doc_path else src_folder.parent / "class_diagrams.md"
 
     generator = ClassDiagramGenerator()
 
