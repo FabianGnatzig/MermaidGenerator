@@ -1,3 +1,9 @@
+## 1.3.0 (2026-06-23)
+
+### Feat
+
+- expose mermaidgenerator as a pre-commit hook
+
 ## 1.2.1 (2026-05-29)
 
 ### Fix
