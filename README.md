@@ -60,6 +60,22 @@ python -m mermaidgenerator --src-folder src --exclude "**/test_*.py" --exclude "
 
 ---
 
+## Use as a pre-commit hook
+
+Add this to your project's `.pre-commit-config.yaml`:
+
+```yaml
+- repo: https://github.com/FabianGnatzig/MermaidGenerator
+  rev: v1.2.1
+  hooks:
+    - id: mermaidgenerator
+      args: [--src-folder, src, --doc-path, docs/class_diagrams.md]
+```
+
+`args` accepts the same flags as the CLI (`--src-folder`, `--doc-path`, `--exclude`). Pin `rev` to a tag and run `pre-commit autoupdate` to bump it later.
+
+---
+
 ## Example output
 
 Given a class like this:
