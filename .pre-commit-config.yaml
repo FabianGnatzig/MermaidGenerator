@@ -17,3 +17,8 @@ repos:
     - pre-push
   repo: https://github.com/commitizen-tools/commitizen
   rev: v4.13.9
+- repo: https://github.com/FabianGnatzig/MermaidGenerator
+  rev: 1.3.0
+  hooks:
+    - id: mermaidgenerator
+      args: [--src-folder, examples, --doc-path, examples/class_diagrams.md]
