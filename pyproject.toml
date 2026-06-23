@@ -11,6 +11,9 @@ dependencies = [
     "commitizen (>=4.13.9,<5.0.0)"
 ]
 
+[project.scripts]
+mermaidgenerator = "mermaidgenerator.main:main"
+
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

@@ -1,0 +1,7 @@
+- id: mermaidgenerator
+  name: MermaidGenerator
+  description: Generates a Markdown file with Mermaid class diagrams from Python source.
+  entry: mermaidgenerator
+  language: python
+  pass_filenames: false
+  always_run: true
