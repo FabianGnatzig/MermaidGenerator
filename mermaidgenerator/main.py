@@ -43,7 +43,7 @@ def main() -> None:
 
     generator = ClassDiagramGenerator()
 
-    for python_file in src_folder.rglob("*.py"):
+    for python_file in sorted(src_folder.rglob("*.py")):
         if _is_excluded(python_file, src_folder, args.exclude):
             continue
 
